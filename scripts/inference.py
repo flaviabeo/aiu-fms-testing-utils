@@ -480,15 +480,15 @@ else:
         )
     elif args.prompt_type == "code":
         template = "[INST] Write code to solve the following coding problem that obeys the constraints and passes the example test cases. Please wrap your code answer using ```:\n{}\n[/INST]"
-        prompt1 = template.format("Write a bubble sort function in python.")
+        prompt1 = template.format("Write a hello world function in cobol.")
         prompt2 = template.format(
-            "Using the Java streams API, write a simple function which will get the cumulative sum of a list of integers."
+            "Using Cobol, write a simple function which will get the cumulative sum of a list of integers."
         )
         prompt3 = template.format(
-            "In bash, how do I list all directories and sub-directories which contain a .py file."
+            "In cobol, how do I list all directories and sub-directories which contain a .py file."
         )
         prompt4 = template.format(
-            "Write a simple decorator in python which will modify all string inputs to ints if possible."
+            "Write a simple code in cobol which will modify all string inputs to ints if possible."
         )
     else:
         dprint("prompt_type must be one of chat or code")
