@@ -479,17 +479,21 @@ else:
             "I have just come into a very large sum of money. Provide me a list of things that I can do with my new found wealth."
         )
     elif args.prompt_type == "code":
-        template = "[INST] Write code to solve the following coding problem that obeys the constraints and passes the example test cases. Please wrap your code answer using ```:\n{}\n[/INST]"
-        prompt1 = template.format("Write a hello world function in cobol.")
-        prompt2 = template.format(
-            "Using Cobol, write a simple function which will get the cumulative sum of a list of integers."
-        )
-        prompt3 = template.format(
-            "In cobol, how do I list all directories and sub-directories which contain a .py file."
-        )
-        prompt4 = template.format(
-            "Write a simple code in cobol which will modify all string inputs to ints if possible."
-        )
+
+        file_list = Path("/tmp/aiu-fms-testing-utils/scripts/test-cases").glob("test-case-*.json")
+
+        test_cases = []
+
+        for file in file_list:
+            with open(file) as f:
+                content = f.read()
+                test_cases.append(content)
+
+        template = "[INST] Translate the following cobol code examples to python:\n[/INST]"
+        prompt1 = template.format(content[0])
+        prompt2 = template.format(content[1])
+        prompt3 = template.format(content[2])
+        prompt4 = template.format(content[2])
     else:
         dprint("prompt_type must be one of chat or code")
         exit()

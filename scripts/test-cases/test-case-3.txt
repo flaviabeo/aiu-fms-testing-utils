@@ -1,0 +1,86 @@
+ IF WS-DISPLAY-LINE = "* MQPUTSUB V1.0 " AND
+              CA-RETURN-CODE = 0 AND
+              WS-DEBUG = " " AND
+              WS-COMM-QUEUE = "COMM BLOCK DATA" AND
+              B100-NOT-RAN AND
+              B117-NOT-RAN AND
+              W500-RAN THEN
+               DISPLAY "TEST 3 PASSED"
+           ELSE
+               DISPLAY "TEST 3 FAILED"
+           END-IF
+           INITIALIZE WS-COMM-BLOCK
+           INITIALIZE WS-DISPLAY-LINE
+           INITIALIZE WS-CONFIG-PARAMETERS
+           INITIALIZE CA-MQPUTSUB-PARM
+               SET DISCONNECT-ACTION TO TRUE
+               SET TOGGLE-ERROR-FLAG TO TRUE
+               MOVE "COMM BLOCK DATA" TO CA-COMM-BLOCK
+               MOVE "QUEUE DATA" TO WS-QUEUE
+           INITIALIZE SECTIONS-RUN
+               PERFORM B000-INITIALISE.
+           IF WS-DISPLAY-LINE = "* MQPUTSUB V1.0 " AND
+              CA-RETURN-CODE = 0 AND
+              WS-DEBUG = " " AND
+              WS-COMM-QUEUE = "COMM BLOCK DATA" AND
+              B100-NOT-RAN AND
+              B117-NOT-RAN AND
+              W500-RAN THEN
+               DISPLAY "TEST 4 PASSED"
+           ELSE
+               DISPLAY "TEST 4 FAILED"
+           END-IF.
+
+## Variable Map:
+WS-QUEUE gettermapping wsConfigParameters.getWsQueue()
+WS-QUEUE settermapping wsConfigParameters.setWsQueue(val)
+WS-QUEUE PIC X(00048) JavaType String
+WS-DISPLAY-LINE gettermapping wsDisplayLine.getBytes()
+WS-DISPLAY-LINE settermapping wsDisplayLine.setBytes(val)
+WS-DISPLAY-LINE GROUP JavaType WsDisplayLine
+WS-DEBUG gettermapping wsCommBlock.getWsDebug()
+WS-DEBUG settermapping wsCommBlock.setWsDebug(val)
+WS-DEBUG PIC X(00001) JavaType char
+WS-CONFIG-PARAMETERS gettermapping wsConfigParameters.getBytes()
+WS-CONFIG-PARAMETERS settermapping wsConfigParameters.setBytes(val)
+WS-CONFIG-PARAMETERS GROUP JavaType WsConfigParameters
+WS-COMM-QUEUE gettermapping wsCommBlock.getWsCommQueue()
+WS-COMM-QUEUE settermapping wsCommBlock.setWsCommQueue(val)
+WS-COMM-QUEUE PIC X(00048) JavaType String
+WS-COMM-BLOCK gettermapping wsCommBlock.getBytes()
+WS-COMM-BLOCK settermapping wsCommBlock.setBytes(val)
+WS-COMM-BLOCK GROUP JavaType WsCommBlock
+W500-RAN gettermapping sectionsRun.isW500Ran()
+W500-RAN settermapping sectionsRun.setW500Ran()
+W500-RAN 88 JavaType boolean
+TOGGLE-ERROR-FLAG gettermapping testFlags.isToggleErrorFlag()
+TOGGLE-ERROR-FLAG settermapping testFlags.setToggleErrorFlag()
+TOGGLE-ERROR-FLAG 88 JavaType boolean
+TEST-ERROR-FLAG gettermapping testFlags.getTestErrorFlag()
+TEST-ERROR-FLAG settermapping testFlags.setTestErrorFlag(val)
+TEST-ERROR-FLAG PIC 9 JavaType int
+SECTIONS-RUN gettermapping sectionsRun.getBytes()
+SECTIONS-RUN settermapping sectionsRun.setBytes(val)
+SECTIONS-RUN GROUP JavaType SectionsRun
+DISCONNECT-ACTION gettermapping caMqputsubParm.getCaHeader().isDisconnectAction()
+DISCONNECT-ACTION settermapping caMqputsubParm.getCaHeader().setDisconnectAction()
+DISCONNECT-ACTION 88 JavaType boolean
+CA-RETURN-CODE gettermapping caMqputsubParm.getCaHeader().getCaReturnCode()
+CA-RETURN-CODE settermapping caMqputsubParm.getCaHeader().setCaReturnCode(val)
+CA-RETURN-CODE PIC 9(00004) JavaType int
+CA-MQPUTSUB-PARM gettermapping caMqputsubParm.getBytes()
+CA-MQPUTSUB-PARM settermapping caMqputsubParm.setBytes(val)
+CA-MQPUTSUB-PARM GROUP JavaType CaMqputsubParm
+CA-COMM-BLOCK gettermapping caMqputsubParm.getCaHeader().getCaCommBlock()
+CA-COMM-BLOCK settermapping caMqputsubParm.getCaHeader().setCaCommBlock(val)
+CA-COMM-BLOCK PIC X(00057) JavaType String
+CA-ACTION gettermapping caMqputsubParm.getCaHeader().getCaAction()
+CA-ACTION settermapping caMqputsubParm.getCaHeader().setCaAction(val)
+CA-ACTION PIC X(00004) JavaType String
+B117-NOT-RAN gettermapping sectionsRun.isB117NotRan()
+B117-NOT-RAN settermapping sectionsRun.setB117NotRan()
+B117-NOT-RAN 88 JavaType boolean
+B100-NOT-RAN gettermapping sectionsRun.isB100NotRan()
+B100-NOT-RAN settermapping sectionsRun.setB100NotRan()
+B100-NOT-RAN 88 JavaType boolean
+B000-INITIALISE, b000Initialise(caMqputsubParm, flErrorFlag, sectionsRun, testFlags, wsCommBlock, wsConfigParameters, wsDisplayLine)
