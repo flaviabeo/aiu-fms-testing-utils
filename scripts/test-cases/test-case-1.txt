@@ -1,6 +1,3 @@
-DEMO-TASKA.
- 
- * This is prompt example 1 *  
 MOVE 'HELLO WORLD' TO VA-TAB  
 MOVE '45' TO CA-PAYMENT  
 IF MAN-BOOKER IS EQUAL TO 24

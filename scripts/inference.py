@@ -480,7 +480,7 @@ else:
         )
     elif args.prompt_type == "code":
 
-        file_list = Path("/tmp/aiu-fms-testing-utils/scripts/test-cases").glob("test-case-*.json")
+        file_list = Path("/tmp/aiu-fms-testing-utils/scripts/test-cases").glob("test-case-*.txt")
 
         test_cases = []
 
