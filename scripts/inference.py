@@ -490,10 +490,10 @@ else:
                 test_cases.append(content)
 
         template = "[INST] Translate the following cobol code examples to python:\n[/INST]"
-        prompt1 = template.format(content[0])
-        prompt2 = template.format(content[1])
-        prompt3 = template.format(content[2])
-        prompt4 = template.format(content[2])
+        prompt1 = template.format(test_cases[0])
+        prompt2 = template.format(test_cases[1])
+        prompt3 = template.format(test_cases[2])
+        prompt4 = template.format(test_cases[2])
     else:
         dprint("prompt_type must be one of chat or code")
         exit()
