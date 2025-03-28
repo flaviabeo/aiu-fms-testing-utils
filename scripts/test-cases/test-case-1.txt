@@ -46,4 +46,3 @@ AGE gettermapping spa.getInt("age")
 AGE settermapping spa.setInt("age", val)
 AGE PIC 9(2) JavaType int
 TRAN-RATE-INTERVAL, markDanson.tranInterval(reportVal)
-
