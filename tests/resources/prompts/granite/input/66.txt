@@ -1,3 +1,9 @@
+System:
+Solve the following coding problem. Wrap your code answer using ```
+
+
+Question:
+Translate the following cobol code to python:
  IF WS-DISPLAY-LINE = "* MQPUTSUB V1.0 " AND
               CA-RETURN-CODE = 0 AND
               WS-DEBUG = " " AND
@@ -30,3 +36,7 @@
            ELSE
                DISPLAY "TEST 4 FAILED"
            END-IF.
+
+
+
+Answer:

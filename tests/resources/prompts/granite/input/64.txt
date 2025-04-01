@@ -1,3 +1,9 @@
+System:
+Solve the following coding problem. Wrap your code answer using ```
+
+
+Question:
+Translate the following cobol code to python:
 MOVE 'HELLO WORLD' TO VA-TAB  
 MOVE '45' TO CA-PAYMENT  
 IF MAN-BOOKER IS EQUAL TO 24
@@ -22,3 +28,6 @@ ENDIF
  MOVE 20 TO AGE
  DISPLAY AGE
  EXIT.
+
+
+Answer:
