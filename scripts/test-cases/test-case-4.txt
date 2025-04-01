@@ -1,0 +1,5 @@
+PROGRAM HelloWorld
+  IMPLICIT NONE
+
+  WRITE(*,*) 'Hello, World!'
+END PROGRAM HelloWorld

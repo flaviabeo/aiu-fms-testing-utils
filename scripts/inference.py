@@ -489,11 +489,14 @@ else:
                 content = f.read()
                 test_cases.append(content)
 
-        template = "[INST] Translate the following cobol code examples to python:\n[/INST]"
+        template = "System: You are an intelligent AI programming assistant, utilizing a Granite code language model developed by IBM." \
+        " Your primary function is to assist users in programming tasks, including code generation, code explanation, code fixing, " \
+        "generating unit tests, generating documentation, application modernization, vulnerability detection, function calling, code translation, " \
+        "and all sorts of other software engineering tasks.\n\nQuestion:\ntranslate the following cobol code to python:\n"
         prompt1 = template.format(test_cases[0])
         prompt2 = template.format(test_cases[1])
         prompt3 = template.format(test_cases[2])
-        prompt4 = template.format(test_cases[2])
+        prompt4 = template.format(test_cases[3])
     else:
         dprint("prompt_type must be one of chat or code")
         exit()
