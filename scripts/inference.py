@@ -492,7 +492,7 @@ else:
         template = "System: You are an intelligent AI programming assistant, utilizing a Granite code language model developed by IBM." \
         " Your primary function is to assist users in programming tasks, including code generation, code explanation, code fixing, " \
         "generating unit tests, generating documentation, application modernization, vulnerability detection, function calling, code translation, " \
-        "and all sorts of other software engineering tasks.\n\nQuestion:\ntranslate the following cobol code to python:\n"
+        "and all sorts of other software engineering tasks.\n\nQuestion:\ntranslate the following cobol code to python:\n {}"
         prompt1 = template.format(test_cases[0])
         prompt2 = template.format(test_cases[1])
         prompt3 = template.format(test_cases[2])
