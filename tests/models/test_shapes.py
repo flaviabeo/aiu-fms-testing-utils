@@ -15,11 +15,12 @@ if "HF_HOME" not in os.environ:
 # Add models to test here
 LLAMA_3p1_8B_INSTRUCT = "meta-llama/Llama-3.1-8B-Instruct"
 GRANITE_3p2_8B_INSTRUCT = "ibm-granite/granite-3.2-8b-instruct"
+GRANITE_COBOL_20B = "/ibm-dmf/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"
 
 SHARE_GPT_DATASET_PATH = os.environ.get("SHARE_GPT_DATASET_PATH", os.path.expanduser("~/share_gpt.json"))
 USE_MICRO_MODELS = os.environ.get("FMS_TEST_SHAPES_USE_MICRO_MODELS", "1") == "1"
 validation_info_dir = os.environ.get("FMS_TEST_SHAPES_VALIDATION_INFO_DIR", "/tmp/models/validation_info")
-common_model_paths = os.environ.get("FMS_TEST_SHAPES_COMMON_MODEL_PATHS", [LLAMA_3p1_8B_INSTRUCT, GRANITE_3p2_8B_INSTRUCT])
+common_model_paths = os.environ.get("FMS_TEST_SHAPES_COMMON_MODEL_PATHS", [GRANITE_COBOL_20B])
 # for validation level 1, the default is a failure rate of 1%
 # set this environment variable if you would like to relax that threshold
 failure_rate_threshold = os.environ.get("FMS_TEST_SHAPES_FAILURE_THRESHOLD", 0.01)
@@ -65,6 +66,7 @@ common_shapes = list(itertools.product(common_model_paths, common_batch_sizes, c
 fail_thresholds = {
     LLAMA_3p1_8B_INSTRUCT: (3.7392955756187423, (-1.0430812658057675e-08, 1.0401941685778344e-08)),
     GRANITE_3p2_8B_INSTRUCT: (2.996668996810913, (-8.911825961632757e-09, 8.75443184611413e-09)),
+    GRANITE_COBOL_20B: (2.996668996810913, (-8.911825961632757e-09, 8.75443184611413e-09))
 }
 
 @pytest.fixture(autouse=True)

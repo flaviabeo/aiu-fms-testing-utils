@@ -8,13 +8,15 @@ from fms.testing._internal.model_test_suite import (
 )
 import os
 
-model_dir = os.environ.get("FMS_TESTING_MODEL_DIR", "/tmp/models")
+model_dir = os.environ.get("FMS_TESTING_MODEL_DIR", "/mnt/aiu-models-en-shared/models")
+# FMS_TESTING_MODEL_DIR=/mnt/aiu-models-en-shared/models
 LLAMA_194M = f"{model_dir}/llama-194m"
 GRANITE_7B_BASE = f"{model_dir}/granite-7b-base"
 GRANITE_8B_CODE_BASE = f"{model_dir}/granite-8b-code-base"
 GRANITE_3_8B_CODE_BASE = f"{model_dir}/granite-3-8b-base"
+GRANITE_COBOL_20B = "/ibm-dmf/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"
 
-models = [LLAMA_194M, GRANITE_7B_BASE, GRANITE_8B_CODE_BASE, GRANITE_3_8B_CODE_BASE]
+models = [LLAMA_194M, GRANITE_7B_BASE, GRANITE_8B_CODE_BASE, GRANITE_3_8B_CODE_BASE, GRANITE_COBOL_20B]
 
 class AIUModelFixtureMixin(ModelFixtureMixin):
 

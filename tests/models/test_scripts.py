@@ -15,12 +15,15 @@ LLAMA_194M = f"{model_dir}/llama-194m"
 GRANITE_7B_BASE = f"{model_dir}/granite-7b-base"
 GRANITE_8B_CODE_BASE = f"{model_dir}/granite-8b-code-base"
 GRANITE_3_8B_CODE_BASE = f"{model_dir}/granite-3-8b-base"
+GRANITE_COBOL_20B = "/ibm-dmf/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"
 
 # pass custom model path list for eg: EXPORT FMS_TESTING_COMMON_MODEL_PATHS="/tmp/models/granite-3-8b-base,/tmp/models/granite-7b-base"
-if os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS") == None or os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS") == "":
-    common_model_paths = [LLAMA_194M]
-else:
-    common_model_paths = os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS").split(',')
+# if os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS") == None or os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS") == "":
+#     common_model_paths = [GRANITE_COBOL_20B]
+# else:
+#     common_model_paths = os.environ.get("FMS_TESTING_COMMON_MODEL_PATHS").split(',')
+
+common_model_paths = [GRANITE_COBOL_20B]
 
 common_batch_sizes = [1,8]
 common_seq_lengths = [64]
