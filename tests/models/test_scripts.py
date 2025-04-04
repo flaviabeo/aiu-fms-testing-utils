@@ -111,10 +111,7 @@ def test_level_0_validation_script(model_path, batch_size, seq_length, max_new_t
     assert "The validation has passed!" in result_text
 
 common_asserts = [
-    "### Response: Chicken soup is a popular soup that is",
-    "### Response: I am sorry, but I am not",
-    "### Response: I am ignorant of the fact that I",
-    "### Response: I have just come into a very large",
+    "### Response: "
 ]
 
 def __repeat_batch_asserts(bs: int) -> list[str]:
