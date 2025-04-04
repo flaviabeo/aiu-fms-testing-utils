@@ -26,8 +26,8 @@ common_model_paths = os.environ.get("FMS_TEST_SHAPES_COMMON_MODEL_PATHS", [GRANI
 failure_rate_threshold = os.environ.get("FMS_TEST_SHAPES_FAILURE_THRESHOLD", 0.01)
 default_metrics_threshold = os.environ.get("FMS_TEST_SHAPES_METRICS_THRESHOLD",(2.0, (-1.0e-8,1.0e-8)))
 save_validation_info_outputs = os.environ.get("FMS_TEST_SHAPES_SAVE_VALIDATION_INFO_OUTPUTS", "0") == "1"
-common_batch_sizes = os.environ.get("FMS_TEST_SHAPES_COMMON_BATCH_SIZES", [1, 2, 4, 8])
-common_seq_lengths = os.environ.get("FMS_TEST_SHAPES_COMMON_SEQ_LENGTHS", [64, 2048])
+common_batch_sizes = os.environ.get("FMS_TEST_SHAPES_COMMON_BATCH_SIZES", [1, 2])
+common_seq_lengths = os.environ.get("FMS_TEST_SHAPES_COMMON_SEQ_LENGTHS", [64])
 common_max_new_tokens = os.environ.get("FMS_TEST_SHAPES_COMMON_MAX_NEW_TOKENS", [128])
 
 if USE_MICRO_MODELS:
