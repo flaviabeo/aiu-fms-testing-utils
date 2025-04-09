@@ -1,4 +1,3 @@
-Question:
 translate code from cobol to java
 
 
