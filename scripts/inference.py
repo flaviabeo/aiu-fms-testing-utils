@@ -478,9 +478,36 @@ else:
         prompt4 = template.format(
             "I have just come into a very large sum of money. Provide me a list of things that I can do with my new found wealth."
         )
+    elif args.prompt_type == "code":
+
+        file_list = Path("/tmp/aiu-fms-testing-utils/scripts/test-cases").glob("test-case-*.txt")
+
+        test_cases = []
+
+        for file in file_list:
+            with open(file) as f:
+                content = f.read()
+                test_cases.append(content)
+
+        template = "System: You are an intelligent AI programming assistant, utilizing a Granite code language model developed by IBM." \
+        " Your primary function is to assist users in programming tasks, including code generation, code explanation, code fixing, " \
+        "generating unit tests, generating documentation, application modernization, vulnerability detection, function calling, code translation, " \
+        "and all sorts of other software engineering tasks.\n\nQuestion:\ntranslate the following cobol code to python:\n {}"
+        prompt1 = template.format(test_cases[0])
+        prompt2 = template.format(test_cases[1])
+        prompt3 = template.format(test_cases[2])
+        prompt4 = template.format(test_cases[3])
     else:
         dprint("prompt_type must be one of chat or code")
         exit()
+
+    prompt1 = ids_for_prompt(prompt1)
+    prompt2 = ids_for_prompt(prompt2)
+    prompt3 = ids_for_prompt(prompt3)
+    prompt4 = ids_for_prompt(prompt4)
+    prompts = [prompt1, prompt2, prompt3, prompt4]
+    prompts = prompts * ((args.batch_size // 4) + 1)
+    prompts = prompts[: args.batch_size]
 
 if args.fixed_prompt_length != 0:
     padding_length = args.fixed_prompt_length
