@@ -16,7 +16,7 @@ def execute_script(execute_cmd):
 def execute_generate_metrics(model_id, max_new_tokens, batch_size, seq_length, default_dtype):
     execute_cmd = [
         'python3',
-        "/gpfs/users/jmrosenk/aiu-fms-testing-utils/scripts/generate_metrics.py",
+        "/tmp/aiu-fms-testing-utils/scripts/generate_metrics.py",
         "--architecture=hf_pretrained",
         f"--variant={model_id}",
         f"--tokenizer={model_id}",
@@ -24,13 +24,13 @@ def execute_generate_metrics(model_id, max_new_tokens, batch_size, seq_length, d
         f"--min_pad_length={seq_length}",
         f"--batch_size={batch_size}",
         f"--default_dtype={default_dtype}",
-        "--output_dir=/gpfs/users/jmrosenk/fullsize_models",
+        "--output_dir=/tmp/aiu-fms-testing-utils/output/",
         "--sharegpt_path=/gpfs/users/jmrosenk/ShareGPT_V3_unfiltered_cleaned_split.json",
         "--num_test_tokens_per_sequence=1024",
     ]
     return execute_script(execute_cmd)
 
-model_ids = ["ibm-granite/granite-20b-code-instruct-8k"]
+model_ids = ["/ibm-dmf/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"]
 
 max_new_tokens = [128]
 batch_sizes = [1,8]
