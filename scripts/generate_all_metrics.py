@@ -25,7 +25,7 @@ def execute_generate_metrics(model_id, max_new_tokens, batch_size, seq_length, d
         f"--batch_size={batch_size}",
         f"--default_dtype={default_dtype}",
         "--output_dir=/tmp/aiu-fms-testing-utils/output/",
-        "--sharegpt_path=/gpfs/users/jmrosenk/ShareGPT_V3_unfiltered_cleaned_split.json",
+        "--sharegpt_path=/mnt/aiu-models-en-shared/granite-20b-code-cobol-v1/sharegpt/share_gpt.json",
         "--num_test_tokens_per_sequence=1024",
     ]
     return execute_script(execute_cmd)
