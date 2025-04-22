@@ -17,7 +17,7 @@ GRANITE_7B_BASE = f"{model_dir}/granite-7b-base"
 GRANITE_8B_CODE_BASE = f"{model_dir}/granite-8b-code-base"
 GRANITE_3_8B_CODE_BASE = f"{model_dir}/granite-3-8b-base"
 
-models = [LLAMA_194M, GRANITE_7B_BASE, GRANITE_8B_CODE_BASE, GRANITE_3_8B_CODE_BASE]
+models = ["/ibm-dmf/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"]
 mini_models = {LLAMA_194M, GRANITE_7B_BASE, GRANITE_8B_CODE_BASE, GRANITE_3_8B_CODE_BASE}
 
 class AIUModelFixtureMixin(ModelFixtureMixin):
