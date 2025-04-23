@@ -46,7 +46,7 @@ SHARE_GPT_DATASET_PATH = os.environ.get(
 )
 USE_MICRO_MODELS = os.environ.get("FMS_TEST_SHAPES_USE_MICRO_MODELS", "1") == "1"
 USE_DISTRIBUTED = os.environ.get("FMS_TEST_SHAPES_DISTRIBUTED", "0") == "1"
-FORCE_VALIDATION_LEVEL_1 = os.environ.get("FMS_TEST_SHAPES_FORCE_VALIDATION_LEVEL_1", "0") == "1"
+FORCE_VALIDATION_LEVEL_1 = "1"
 validation_info_dir = os.environ.get(
     "FMS_TEST_SHAPES_VALIDATION_INFO_DIR", "/tmp/models/validation_info"
 )
