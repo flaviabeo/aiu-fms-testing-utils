@@ -52,7 +52,7 @@ class AIUModelFixtureMixin(ModelFixtureMixin):
         return uninitialized_model
 
 
-decoder_models = [LLAMA_3p1_8B_INSTRUCT, GRANITE_3p2_8B_INSTRUCT]
+decoder_models = ['/mnt/aiu-models-en-shared/models/hf/Mistral-7B-Instruct-v0.3']
 
 
 class TestAIUDecoderModels(
