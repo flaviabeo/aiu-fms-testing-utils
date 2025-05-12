@@ -25,12 +25,12 @@ def execute_generate_metrics(model_id, max_new_tokens, batch_size, seq_length, d
         f"--batch_size={batch_size}",
         f"--default_dtype={default_dtype}",
         "--output_dir=/tmp/aiu-fms-testing-utils/output/",
-        "--sharegpt_path=/tmp/aiu-fms-testing-utils/tests/resources/sharegpt/share_gpt.json",
+        "--sharegpt_path=/tmp/aiu-fms-testing-utils/tests/resources/sharegpt/ShareGPT_V3_unfiltered_cleaned_split.json",
         "--num_test_tokens_per_sequence=1024",
     ]
     return execute_script(execute_cmd)
 
-model_ids = ["/ibm_dmf_lakehouse/models/watsonx/shared/granite-20b-code-cobol-v1/20240603"]
+model_ids = ["/tmp/aiu-fms-testing-utils/models/Mistral-7B-Instruct-v0.3"]
 
 max_new_tokens = [128]
 batch_sizes = [1,8]
