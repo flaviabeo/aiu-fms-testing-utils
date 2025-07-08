@@ -340,7 +340,8 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                 if type(cpu_output) is tuple and type(cuda_output) is tuple:
                     cos_sim = []
                     if len(cpu_layer) < 2 and len(cpu_layer[-1]) == 1:
-                        tensor_cuda_out = cpu_layer[-1]
+                        tensor_cuda_out = cuda_output[-1]
+                        tensor_cpu_out = cpu_layer[-1]
                         for i in range(len(cpu_layer)):
                             logger.debug(f"inputs: {cuda_output[i].shape} {cpu_output[i].to('cuda').shape}")
                             cos_sim.append(cos(cuda_output[i], cpu_output[i].to('cuda')))
@@ -353,12 +354,14 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                             if isinstance(head_tensor_gpu[i], tuple):
                                 for j in range(len(head_tensor_gpu[i])):
                                     tensor_cuda_out = head_tensor_gpu[i][j]
+                                    tensor_cpu_out = head_tensor_cpu[i][j]
                                     logger.debug(f"inputs: {head_tensor_gpu[i][j].shape} {head_tensor_cpu[i][j].to('cuda').shape}")
                                     cos_sim.append(cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]))
                                     logger.debug(f"output:{cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]).shape}")
                                     abs_diff = torch.abs(head_tensor_cpu[i][j].to('cuda') - head_tensor_gpu[i][j])
                             else:
                                 tensor_cuda_out = head_tensor_gpu[i]
+                                tensor_cpu_out = head_tensor_cpu[i]
                                 logger.debug(f"inputs: {head_tensor_gpu[i].shape} {head_tensor_cpu[i].to('cuda').shape}")
                                 cos_sim.append(cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]))
                                 logger.debug(f"output:{cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]).shape}")
