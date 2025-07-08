@@ -338,7 +338,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
 
                 if type(cpu_output) is tuple and type(cuda_output) is tuple:
                     cos_sim = []
-                    if len(cpu_layer[-1]) == 1:
+                    if len(cpu_layer) == 3 and len(cpu_layer[-1]) == 1:
                         for i in range(len(cpu_layer)):
                             logger.debug(f"inputs: {cuda_output[i].shape} {cpu_output[i].to('cuda').shape}")
                             cos_sim.append(cos(cuda_output[i], cpu_output[i].to('cuda')))
