@@ -354,11 +354,11 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                                     cos_sim.append(cos(head_tensor_cpu[j].to('cuda'), head_tensor_gpu[j]))
                                     print(f"output:{cos(head_tensor_cpu[j].to('cuda'), head_tensor_gpu[j]).shape}")
                                     abs_diff = torch.abs(head_tensor_cpu[j].to('cuda') - head_tensor_gpu[j])
-
-                            print(f"inputs: {head_tensor_gpu[i].shape} {head_tensor_cpu[i].to('cuda').shape}")
-                            cos_sim.append(cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]))
-                            print(f"output:{cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]).shape}")
-                            abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
+                            else:
+                                print(f"inputs: {head_tensor_gpu[i].shape} {head_tensor_cpu[i].to('cuda').shape}")
+                                cos_sim.append(cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]))
+                                print(f"output:{cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]).shape}")
+                                abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
                 else:
                     tensor_cpu_out = cpu_output.to('cuda')
                     abs_diff = torch.abs(tensor_cpu_out - cuda_output)
