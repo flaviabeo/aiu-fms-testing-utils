@@ -268,11 +268,6 @@ def write_csv(values, path, metric, gpu_layer_shape, cpu_layer_shape, output_sha
             f.write(f"{values}\n")
         f.close()
 
-def convert_tensor(output):
-    out_unique = set(list(itertools.chain.from_iterable(output)))
-    keys = {key: value for key, value in zip(out_unique, range(len(out_unique)))}
-    return torch.zeros(size=(len(output), len(keys)))
-
 def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
     """
     Generate metrics for layers in a given model.
@@ -337,21 +332,29 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
         tensor_cuda_out = None
         tensor_cpu_out = None
         abs_diff = None
+        cos = nn.CosineSimilarity(dim=-1)
         for cpu_layer, cpu_output in layer_stack_cpu:
             if cpu_layer == layer:
                 logger.info("CPU Layer {} GPU Layer {}".format(cpu_layer, layer))
 
-                if not type(cuda_output) is tuple:
-                    tensor_cuda_out = cuda_output
-                else:
-                    tensor_cuda_out = convert_tensor(cuda_output)
-                if type(cpu_output) is tuple:
-                    tensor_cpu_out = convert_tensor(cpu_output)
+                if type(cpu_output) is tuple and type(cuda_output) is tuple:
+                    cos_sim = []
+                    if len(cpu_layer) == 3 and len(cpu_layer[-1]) == 1:
+                        for i in range(len(cpu_layer)):
+                            print(f"inputs: {cuda_output[i].shape} {cpu_output[i].to('cuda').shape} output:{cos(cuda_output[i], cpu_output[i].to('cuda')).shape}")
+                            cos_sim.append(cos(cuda_output[i], cpu_output[i].to('cuda')))
+                    else:
+                        cos_sim.append(cuda_output[1], cpu_output[1].to('cuda'))
+                        for i in range(len(cpu_layer[-1])):
+                            head_tensor_cpu = cuda_output[-1]
+                            head_tensor_gpu = cpu_output[-1]
+                            print(f"inputs: {head_tensor_gpu[i].shape} {head_tensor_cpu[i].to('cuda').shape}")
+                            cos_sim.append(cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]))
+                            abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
                 else:
                     tensor_cpu_out = cpu_output.to('cuda')
-                abs_diff = torch.abs(tensor_cpu_out - tensor_cuda_out)
-                cos = nn.CosineSimilarity(dim=-1)
-                cos_sim = cos(tensor_cpu_out, tensor_cuda_out)
+                    abs_diff = torch.abs(tensor_cpu_out - tensor_cuda_out)
+                    cos_sim = cos(tensor_cpu_out, tensor_cuda_out)
 
                 prefix = get_default_validation_prefix(model_path, max_new_token, batch_size, seq_length, 'float16')
                 layer_name = str(layer).replace('[','').replace(']', '')
