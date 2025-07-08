@@ -241,6 +241,16 @@ def __register_call_layers(model, batch_size, device, seq_length, max_new_tokens
 
     return layer_stack
 
+def get_metric_values(metric_list):
+    if isinstance(metric_list, list):
+        metric_shape = metric_list[0].shape
+        metric_list_res = metric_list
+    else:
+        metric_shape = metric_list.shape
+        metric_list_res = metric_list.flatten().tolist()
+
+    return metric_list_res, metric_shape
+
 def write_csv(values, path, metric, gpu_layer_shape, cpu_layer_shape, output_shape):
     """
     Write values to a CSV file at the given path.
@@ -331,7 +341,6 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
     for layer, cuda_output in layer_stack_cuda:
         tensor_cpu_out = None
         tensor_cuda_out = None
-        abs_diff = None
         cos = nn.CosineSimilarity(dim=-1)
         for cpu_layer, cpu_output in layer_stack_cpu:
             if cpu_layer == layer:
@@ -339,6 +348,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
 
                 if type(cpu_output) is tuple and type(cuda_output) is tuple:
                     cos_sim = []
+                    abs_diff = []
                     if len(cpu_layer) < 2 and len(cpu_layer[-1]) == 1:
                         tensor_cuda_out = cuda_output[-1]
                         tensor_cpu_out = cpu_layer[-1]
@@ -346,7 +356,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                             logger.debug(f"inputs: {cuda_output[i].shape} {cpu_output[i].to('cuda').shape}")
                             cos_sim.append(cos(cuda_output[i], cpu_output[i].to('cuda')))
                             logger.debug(f"cos_sim output:{cos(cuda_output[i], cpu_output[i].to('cuda')).shape}")
-                            abs_diff = torch.abs(cuda_output[i] - cpu_output[i].to('cuda'))
+                            abs_diff.append(torch.abs(cuda_output[i] - cpu_output[i].to('cuda')))
                     else:
                         head_tensor_cpu = cpu_output[-1]
                         head_tensor_gpu = cuda_output[-1]
@@ -358,14 +368,14 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                                     logger.debug(f"inputs: {head_tensor_gpu[i][j].shape} {head_tensor_cpu[i][j].to('cuda').shape}")
                                     cos_sim.append(cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]))
                                     logger.debug(f"cos_sim output:{cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]).shape}")
-                                    abs_diff = torch.abs(head_tensor_cpu[i][j].to('cuda') - head_tensor_gpu[i][j])
+                                    abs_diff.append(torch.abs(head_tensor_cpu[i][j].to('cuda') - head_tensor_gpu[i][j]))
                             else:
                                 tensor_cuda_out = head_tensor_gpu[i]
                                 tensor_cpu_out = head_tensor_cpu[i]
                                 logger.debug(f"inputs: {head_tensor_gpu[i].shape} {head_tensor_cpu[i].to('cuda').shape}")
                                 cos_sim.append(cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]))
                                 logger.debug(f"cos_sim output:{cos(head_tensor_cpu[i].to('cuda'), head_tensor_gpu[i]).shape}")
-                                abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
+                                abs_diff.append(torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i]))
                 else:
                     tensor_cpu_out = cpu_output.to('cuda')
                     tensor_cuda_out = cuda_output
@@ -378,19 +388,12 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                 abs_diff_path = os.path.join(output_dir, f"{prefix}--{layer_name}.abs_diff.csv")
                 cos_sim_path = os.path.join(output_dir, f"{prefix}--{layer_name}.cos_sim.csv")
 
-                cos_sim_res = None
-                cos_shape = None
-
-                if isinstance(cos_sim, list):
-                    cos_shape = cos_sim[0].shape
-                    cos_sim_res = cos_sim
-                else:
-                    cos_shape = cos_sim.shape
-                    cos_sim_res = cos_sim.flatten().tolist()
+                cos_sim_res, cos_shape = get_metric_values(cos_sim)
+                abs_diff_res, abs_diff_shape = get_metric_values(abs_diff)
 
                 if not os.path.exists(abs_diff_path):
                     logger.debug("saving abs_diff files")
-                    write_csv(abs_diff.flatten().tolist(), abs_diff_path, "abs_diff", tensor_cuda_out.shape, tensor_cpu_out.shape, abs_diff.shape)
+                    write_csv(abs_diff_res.flatten().tolist(), abs_diff_path, "abs_diff", tensor_cuda_out.shape, tensor_cpu_out.shape, abs_diff_shape)
                 if not os.path.exists(cos_sim_path):
                     logger.debug("saving cos_sim files")
                     write_csv(cos_sim_res, cos_sim_path, "cos_sim", tensor_cuda_out.shape, tensor_cpu_out.shape, cos_shape)
