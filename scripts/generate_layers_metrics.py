@@ -330,6 +330,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
 
     for layer, cuda_output in layer_stack_cuda:
         tensor_cpu_out = None
+        tensor_cuda_out = None
         abs_diff = None
         cos = nn.CosineSimilarity(dim=-1)
         for cpu_layer, cpu_output in layer_stack_cpu:
@@ -339,6 +340,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                 if type(cpu_output) is tuple and type(cuda_output) is tuple:
                     cos_sim = []
                     if len(cpu_layer) == 3 and len(cpu_layer[-1]) == 1:
+                        tensor_cuda_out = cpu_layer[-1]
                         for i in range(len(cpu_layer)):
                             logger.debug(f"inputs: {cuda_output[i].shape} {cpu_output[i].to('cuda').shape}")
                             cos_sim.append(cos(cuda_output[i], cpu_output[i].to('cuda')))
@@ -350,6 +352,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                         for i in range(len(head_tensor_gpu)):
                             if isinstance(head_tensor_gpu[i], tuple):
                                 for j in range(len(head_tensor_gpu[i])):
+                                    tensor_cuda_out = head_tensor_gpu[i][j]
                                     logger.debug(f"inputs: {head_tensor_gpu[i][j].shape} {head_tensor_cpu[i][j].to('cuda').shape}")
                                     cos_sim.append(cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]))
                                     logger.debug(f"output:{cos(head_tensor_cpu[i][j].to('cuda'), head_tensor_gpu[i][j]).shape}")
@@ -361,6 +364,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                                 abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
                 else:
                     tensor_cpu_out = cpu_output.to('cuda')
+                    tensor_cuda_out = cuda_output
                     abs_diff = torch.abs(tensor_cpu_out - cuda_output)
                     cos_sim = cos(tensor_cpu_out, cuda_output)
 
@@ -372,10 +376,10 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
 
                 if not os.path.exists(abs_diff_path):
                     logger.debug("saving abs_diff files")
-                    write_csv(abs_diff.flatten().tolist(), abs_diff_path, "abs_diff", cuda_output.shape, tensor_cpu_out.shape, abs_diff.shape)
+                    write_csv(abs_diff.flatten().tolist(), abs_diff_path, "abs_diff", tensor_cuda_out.shape, tensor_cpu_out.shape, abs_diff.shape)
                 if not os.path.exists(cos_sim_path):
                     logger.debug("saving cos_sim files")
-                    write_csv(cos_sim.flatten().tolist(), cos_sim_path, "cos_sim", cuda_output.shape, tensor_cpu_out.shape, cos_sim.shape)
+                    write_csv(cos_sim.flatten().tolist(), cos_sim_path, "cos_sim", tensor_cuda_out.shape, tensor_cpu_out.shape, cos_sim.shape)
 
     logger.info(f"Completed {model_path} layers' metrics generation")
 
