@@ -345,7 +345,6 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                             print(f"output:{cos(cuda_output[i], cpu_output[i].to('cuda')).shape}")
                             abs_diff = torch.abs(cuda_output[i] - cpu_output[i].to('cuda'))
                     else:
-                        cos_sim.append(cos(cuda_output[1], cpu_output[1].to('cuda')))
                         for i in range(len(cpu_layer[-1])):
                             head_tensor_cpu = cpu_output[-1]
                             head_tensor_gpu = cuda_output[-1]
