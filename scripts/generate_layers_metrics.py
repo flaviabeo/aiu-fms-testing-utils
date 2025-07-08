@@ -329,7 +329,6 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
     assert len(layer_stack_cuda) == len(layer_stack_cpu)
 
     for layer, cuda_output in layer_stack_cuda:
-        tensor_cuda_out = None
         tensor_cpu_out = None
         abs_diff = None
         cos = nn.CosineSimilarity(dim=-1)
@@ -353,8 +352,8 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                             abs_diff = torch.abs(head_tensor_cpu[i].to('cuda') - head_tensor_gpu[i])
                 else:
                     tensor_cpu_out = cpu_output.to('cuda')
-                    abs_diff = torch.abs(tensor_cpu_out - tensor_cuda_out)
-                    cos_sim = cos(tensor_cpu_out, tensor_cuda_out)
+                    abs_diff = torch.abs(tensor_cpu_out - cuda_output)
+                    cos_sim = cos(tensor_cpu_out, cuda_output)
 
                 prefix = get_default_validation_prefix(model_path, max_new_token, batch_size, seq_length, 'float16')
                 layer_name = str(layer).replace('[','').replace(']', '')
