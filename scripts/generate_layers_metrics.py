@@ -348,7 +348,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                         head_tensor_cpu = cpu_output[-1]
                         head_tensor_gpu = cuda_output[-1]
                         for i in range(len(head_tensor_gpu)):
-                            if head_tensor_gpu[i] is tuple:
+                            if isinstance(head_tensor_gpu[i], tuple):
                                 for j in range(head_tensor_gpu[i]):
                                     print(f"inputs: {head_tensor_gpu[j].shape} {head_tensor_cpu[j].to('cuda').shape}")
                                     cos_sim.append(cos(head_tensor_cpu[j].to('cuda'), head_tensor_gpu[j]))
