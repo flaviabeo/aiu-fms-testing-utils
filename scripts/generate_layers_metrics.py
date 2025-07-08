@@ -382,7 +382,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
 
                 if isinstance(cos_sim, list):
                     print(f"{cos_sim}")
-                    cos_sim_res = cos_sim
+                    cos_sim_res = cos_sim[0]
                 else:
                     cos_sim_res = cos_sim.flatten().tolist()
 
