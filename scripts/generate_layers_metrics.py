@@ -348,16 +348,16 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                                              seq_length=seq_length, max_new_tokens=max_new_tokens, 
                                              tokenizer=tokenizer)
 
-    assert len(layer_stack_cuda) == len(layer_stack_cpu)
+    assert len(layer_stack_cuda.keys()) == len(layer_stack_cpu.keys())
 
-    for key, val in layer_stack_cuda:
+    for layer_key, output_val in layer_stack_cuda.items():
         tensor_cpu_out = None
         tensor_cuda_out = None
 
-        if layer_stack_cpu[key]:
-            cpu_output = layer_stack_cpu[key]
-            cuda_output = val
-            logger.info("CPU Layer {} GPU Layer {}".format(key))
+        if layer_name in layer_stack_cpu.keys():
+            cpu_output = layer_stack_cpu[layer_key]
+            cuda_output = output_val
+            logger.info(f"Comparing CPU and GPU Layer {layer_key} output")
 
             if type(cpu_output) is tuple and type(cuda_output) is tuple:
                 cos_sim = []
@@ -399,7 +399,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                 cos_sim = tensor_cos_sim(tensor_cpu_out, cuda_output)
 
             prefix = get_default_validation_prefix(model_path, max_new_token, batch_size, seq_length, 'float16')
-            layer_name = str(key).replace('[','').replace(']', '')
+            layer_name = str(layer_key).replace('[','').replace(']', '')
 
             abs_diff_path = os.path.join(output_path, f"{prefix}--{layer_name}.abs_diff.csv")
             cos_sim_path = os.path.join(output_path, f"{prefix}--{layer_name}.cos_sim.csv")
@@ -414,7 +414,7 @@ def generate_layers_metrics(model_path, batch_size, seq_length, max_new_tokens):
                 logger.debug("saving cos_sim files")
                 write_csv(cos_sim_res, cos_sim_path, "cos_sim", tensor_cuda_out.shape, tensor_cpu_out.shape, cos_shape)
 
-    logger.info(f"Completed {model_path} layers' metrics generation")
+    logger.info(f"Completed {model_path} layers' metrics generation with {mode} mode")
 
 for model_id, batch_size, sequence_length, max_new_token in common_shapes:
     logger.info(f"testing model_id-{model_id}, max_new_tokens-{max_new_token}, batch_size-{batch_size}, seq_length-{sequence_length}")
