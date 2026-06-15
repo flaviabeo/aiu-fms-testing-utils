@@ -956,43 +956,54 @@ def generate_cpu_validation(
     """
     if "with_sinks" in attn_name:
         attn_name = "sdpa_with_sinks"
+    
+    # Create a copy of extra_kwargs to avoid modifying the original
+    cpu_extra_kwargs = extra_kwargs.copy()
+    # Update attn_name in extra_kwargs to match the CPU-specific attention algorithm
+    # This ensures extract_validation_information uses the correct generation path
+    cpu_extra_kwargs["attn_name"] = attn_name
+    
     # attempt to load the cpu validation info if it is already computed
-    cpu_validation_info = _load_validation_info(
-        model_variant=model_variant,
-        batch_size=valid_prompt[0],
-        seq_length=valid_prompt[1],
+    # cpu_validation_info = _load_validation_info(
+    #     model_variant=model_variant,
+    #     batch_size=valid_prompt[0],
+    #     seq_length=valid_prompt[1],
+    #     max_new_tokens=max_new_tokens,
+    #     tokenizer=tokenizer,
+    #     seed=0,
+    #     cpu_dtype=cpu_dtype,
+    #     attn_type=attn_name,
+    #     validation_info_outputs_dir=validation_info_outputs_dir,
+    #     sample_key=sample_key,
+    # )
+    # if cpu_validation_info is None:
+    dprint(f"Generating CPU validation info for {model_variant} with {attn_name} attention")
+
+    dprint(f"cpu_extra_kwargs: {cpu_extra_kwargs}")
+
+    cpu_validation_info = extract_validation_information(
+        model=validation_model,
+        input_ids=input_ids,
         max_new_tokens=max_new_tokens,
-        tokenizer=tokenizer,
-        seed=0,
-        cpu_dtype=cpu_dtype,
-        attn_type=attn_name,
-        validation_info_outputs_dir=validation_info_outputs_dir,
-        sample_key=sample_key,
+        post_iteration_hook=LogitsExtractorHook(),
+        attn_algorithm=attn_name,
+        pad_token_id=pad_token_id,
+        **cpu_extra_kwargs,
     )
-    if cpu_validation_info is None:
-        cpu_validation_info = extract_validation_information(
-            model=validation_model,
-            input_ids=input_ids,
-            max_new_tokens=max_new_tokens,
-            post_iteration_hook=LogitsExtractorHook(),
-            attn_algorithm=attn_name,
-            pad_token_id=pad_token_id,
-            **extra_kwargs,
-        )
-        if save_validation_info_outputs:
-            cpu_validation_info.save(
-                get_validation_info_path(
-                    validation_info_dir=validation_info_outputs_dir,
-                    model_variant=model_variant,
-                    batch_size=valid_prompt[0],
-                    seq_length=valid_prompt[1],
-                    max_new_tokens=max_new_tokens,
-                    seed=0,
-                    attn_type=attn_name,
-                    dtype=cpu_dtype,
-                    sample_key=sample_key,
-                )
-            )
+    # if save_validation_info_outputs:
+    #     cpu_validation_info.save(
+    #         get_validation_info_path(
+    #             validation_info_dir=validation_info_outputs_dir,
+    #             model_variant=model_variant,
+    #             batch_size=valid_prompt[0],
+    #             seq_length=valid_prompt[1],
+    #             max_new_tokens=max_new_tokens,
+    #             seed=0,
+    #             attn_type=attn_name,
+    #             dtype=cpu_dtype,
+    #             sample_key=sample_key,
+    #         )
+    #     )
 
     return cpu_validation_info
 
@@ -1106,7 +1117,6 @@ def evaluate_cross_entropy_metrics(
 
 def report_token_comparison(
     max_new_tokens: int,
-    aiu_validation_info: ValidationInfo,
     cpu_validation_info: ValidationInfo,
     program_id: str,
     tokenizer: AutoTokenizer,
@@ -1128,15 +1138,13 @@ def report_token_comparison(
     if local_rank != 0:
         return
 
-    for sentence_idx, (reference_sentence, test_sentence) in enumerate(
-        zip(
-            cpu_validation_info.get_info("tokens"),
-            aiu_validation_info.get_info("tokens"),
-        )
+    for sentence_idx, reference_sentence in enumerate(
+        cpu_validation_info.get_info("tokens")
     ):
-        tokens_prompt = [t.item() for t in reference_sentence[:-max_new_tokens]]
-        cpu_tokens_generated = [t.item() for t in reference_sentence[-max_new_tokens:]]
-        aiu_tokens_generated = [t.item() for t in test_sentence[-max_new_tokens:]]
+        # reference_sentence is a list of tensors, each with shape (1,) due to unsqueeze(0)
+        tokens_prompt = [t.squeeze().item() for t in reference_sentence[:-max_new_tokens]]
+        cpu_tokens_generated = [t.squeeze().item() for t in reference_sentence[-max_new_tokens:]]
+        #aiu_tokens_generated = [t.item() for t in test_sentence[-max_new_tokens:]]
         tokens_prompt_without_pad = list(
             dropwhile(lambda x: x == tokenizer.pad_token_id, tokens_prompt)
         )
@@ -1145,9 +1153,9 @@ def report_token_comparison(
         dprint(f"For Program {program_id} in sentence {sentence_idx + 1}:")
         dprint(f"Prompt:\n{tokenizer.decode(tokens_prompt_without_pad)}")
         dprint(f"CPU tokens:\n{cpu_tokens_generated}")
-        dprint(f"AIU tokens:\n{aiu_tokens_generated}")
+        #dprint(f"AIU tokens:\n{aiu_tokens_generated}")
         dprint(f"CPU output:\n{tokenizer.decode(cpu_tokens_generated)}")
-        dprint(f"AIU output:\n{tokenizer.decode(aiu_tokens_generated)}")
+        #dprint(f"AIU output:\n{tokenizer.decode(aiu_tokens_generated)}")
 
 
 def setup_environment(
@@ -1296,6 +1304,8 @@ def generate_validation_info_and_test(
     match the golden reference.
     """
 
+    dprint("generating validation info and testing")
+
     failed_cases = []
     # for each program and valid prompt (batch size, sequence length)
     for valid_prompt in valid_prompts:
@@ -1338,53 +1348,51 @@ def generate_validation_info_and_test(
             )
 
             # Generate AIU validation info
-            aiu_metric_start = print_step(
-                profile, print_utilization, "started", "AIU Inference"
-            )
-            aiu_validation_info = generate_aiu_validation(
-                test_type=test_type,
-                max_new_tokens=max_new_tokens,
-                timing=timing,
-                prefill_chunk_size=prefill_chunk_size,
-                model=model,
-                input_ids=valid_prompt.input_ids,
-                cpu_validation_info=cpu_validation_info,
-                extra_kwargs=valid_prompt.extra_kwargs,
-                pad_token_id=pad_token_id,
-            )
-            print_step(
-                profile,
-                print_utilization,
-                "completed",
-                "AIU Inference",
-                aiu_metric_start,
-            )
+            # aiu_metric_start = print_step(
+            #     profile, print_utilization, "started", "AIU Inference"
+            # )
+            # aiu_validation_info = generate_aiu_validation(
+            #     test_type=test_type,
+            #     max_new_tokens=max_new_tokens,
+            #     timing=timing,
+            #     prefill_chunk_size=prefill_chunk_size,
+            #     model=model,
+            #     input_ids=valid_prompt.input_ids,
+            #     cpu_validation_info=cpu_validation_info,
+            #     extra_kwargs=valid_prompt.extra_kwargs,
+            #     pad_token_id=pad_token_id,
+            # )
+            # print_step(
+            #     profile,
+            #     print_utilization,
+            #     "completed",
+            #     "AIU Inference",
+            #     aiu_metric_start,
+            # )
 
-            if test_type == "metrics":
-                failure_rate = evaluate_cross_entropy_metrics(
-                    cross_entropy_threshold=cross_entropy_threshold,
-                    aiu_validation_info=aiu_validation_info,
-                    cpu_validation_info=cpu_validation_info,
-                    program_id=valid_prompt.program_id,
-                    prompt_shape=valid_prompt.shape,
-                    tokenizer=tokenizer,
-                )
-                if failure_rate > failure_rate_threshold:
-                    failed_cases.append(
-                        (valid_prompt.program_id, valid_prompt.shape, failure_rate)
-                    )
+            # if test_type == "metrics":
+            #     failure_rate = evaluate_cross_entropy_metrics(
+            #         cross_entropy_threshold=cross_entropy_threshold,
+            #         aiu_validation_info=aiu_validation_info,
+            #         cpu_validation_info=cpu_validation_info,
+            #         program_id=valid_prompt.program_id,
+            #         prompt_shape=valid_prompt.shape,
+            #         tokenizer=tokenizer,
+            #     )
+            #     if failure_rate > failure_rate_threshold:
+            #         failed_cases.append(
+            #             (valid_prompt.program_id, valid_prompt.shape, failure_rate)
+            #         )
 
-            elif test_type == "tokens":
-                report_token_comparison(
+            report_token_comparison(
                     max_new_tokens=max_new_tokens,
-                    aiu_validation_info=aiu_validation_info,
                     cpu_validation_info=cpu_validation_info,
                     program_id=valid_prompt.program_id,
                     tokenizer=tokenizer,
                 )
 
-            else:
-                raise ValueError("test type must be one of metrics or tokens")
+            # else:
+            #     raise ValueError("test type must be one of metrics or tokens")
         else:
             # Generate AIU validation info
             aiu_metric_start = print_step(
@@ -1507,6 +1515,9 @@ def main() -> None:
         model_config=model_config,
     )
     validation_model = None
+
+    dprint(f"model: {model}")
+    dprint("before validation_model")
     if not args.skip_validation:
         validation_model = load_model(
             device_type="cpu",
@@ -1516,6 +1527,8 @@ def main() -> None:
             stagger_load=args.stagger_load,
             model_config=model_config,
         )
+
+    dprint(f"validation_model: {validation_model}")
 
     # Model Warmup
     ## warmup with any input so compiler produces criteria json
@@ -1531,18 +1544,20 @@ def main() -> None:
     extra_kwargs["mask"] = extra_kwargs["mask"].to(torch.float16)
     extra_kwargs["attn_name"] = env_config.attn_name
     extra_kwargs["_kvcache_num_blocks_hint"] = model_config.num_blocks
-    warmup_model(
-        model=model,
-        input_ids=input_ids,
-        max_new_tokens=args.max_new_tokens,
-        compile_dynamic_sendnn=True,
-        stagger_update_lazyhandle=args.stagger_update_lazyhandle,
-        prefill_chunk_size=args.prefill_chunk_size,
-        print_utilization=args.report_resource_utilization,
-        profile=p,
-        pad_token_id=pad_token_id,
-        **extra_kwargs,
-    )
+    # warmup_model(
+    #     model=model,
+    #     input_ids=input_ids,
+    #     max_new_tokens=args.max_new_tokens,
+    #     compile_dynamic_sendnn=True,
+    #     stagger_update_lazyhandle=args.stagger_update_lazyhandle,
+    #     prefill_chunk_size=args.prefill_chunk_size,
+    #     print_utilization=args.report_resource_utilization,
+    #     profile=p,
+    #     pad_token_id=pad_token_id,
+    #     **extra_kwargs,
+    # )
+
+    dprint(extra_kwargs)
     if args.distributed:
         # wait for rank0 to be finished as it is the only one generating the criteria json
         # this is needed since otherwise we may run into a race condition

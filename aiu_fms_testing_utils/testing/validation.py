@@ -324,6 +324,14 @@ def extract_validation_information(
         ]
     else:
         validation_info = [{"tokens": t.to("cpu")} for t in torch.unbind(result)]
+
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained("ibm-granite/granite-4.1-8")
+
+        for t in validation_info:
+            dprint(f"Tokens: {t['tokens']}")
+            dprint(f"Decoded: {tokenizer.decode(t['tokens'], skip_special_tokens=True)}")
+
     return ValidationInfo(validation_info)
 
 
@@ -444,6 +452,9 @@ def __decrement_version(version: Tuple[int, int, int], max_minor=25, max_patch=2
     Function designed to prevent triple nested for loop while decrementing version
     """
     major, minor, patch = version
+    print(f"Decrementing version {version}")
+    print(f"major: {major}, minor: {minor}, patch: {patch}")
+
     if patch > 0:
         return (major, minor, patch - 1)
     elif minor > 0:

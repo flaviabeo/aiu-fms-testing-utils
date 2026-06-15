@@ -1,9 +1,11 @@
 import json
+import os
 from aiu_fms_testing_utils.testing.validation import (
     LogitsExtractorHook,
     extract_validation_information,
 )
 from fms.models import get_model
+from fms.utils import tokenizers
 from transformers import AutoTokenizer
 # from concurrent.futures import ThreadPoolExecutor
 # Ideally we want this script to fetch data in parallel
@@ -72,7 +74,14 @@ max_new_tokens = args.max_new_tokens
 is_fp8 = "fp8" in args.attention_type
 model_variant = args.model_variant
 tokenizer = AutoTokenizer.from_pretrained(model_variant)
-model_path_kwargs = {"variant": model_variant}
+
+# Handle both local paths and HuggingFace model IDs
+model_path_kwargs = {}
+if os.path.exists(model_variant):
+    model_path_kwargs["model_path"] = model_variant
+else:
+    model_path_kwargs["variant"] = model_variant
+
 validation_model = get_model(
     architecture="hf_pretrained",
     device_type="cpu",
@@ -88,17 +97,28 @@ dataset = load_jsonl(args.dataset_path)
 def process_row(row):
     id = row["id"]
     prompt_text = row["prompt"]
-    input_ids = tokenizer.encode(prompt_text)
-    print("fetching cpu validation info for id: ", id)
+    input_ids = tokenizer.encode(prompt_text, return_tensors="pt")
+    
+    # Create attention mask (1 for real tokens, 0 for padding)
+    attention_mask = torch.ones_like(input_ids, dtype=torch.float16)
+    
+    # Determine the correct attention algorithm based on attention_type
+    attn_algorithm = "sdpa_with_sinks" if "with_sinks" in args.attention_type else "math"
+    
+    print(f"fetching cpu validation info for id: {id}")
+    print(f"using attention algorithm: {attn_algorithm}")
+    
     with torch.no_grad():
         cpu_validation_info = extract_validation_information(
             validation_model,
-            torch.tensor(input_ids).unsqueeze(0),
+            input_ids,
             max_new_tokens,
             LogitsExtractorHook(),
-            attn_algorithm="math",
+            attn_algorithm=attn_algorithm,
+            pad_token_id=tokenizer.pad_token_id,
+            mask=attention_mask,
         )
-    return {"id": id, "input_ids": input_ids, "validation": cpu_validation_info}
+    return {"id": id, "input_ids": input_ids[0].tolist(), "validation": cpu_validation_info}
 
 
 # See comment above
